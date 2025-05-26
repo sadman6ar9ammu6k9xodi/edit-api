@@ -12,11 +12,14 @@ app.get("/edit", async (req, res) => {
   const { url, prompt } = req.query;
 
   if (!url || !prompt) {
+    console.log("Missing URL or prompt");
     return res.status(400).json({ error: "Please provide both 'url' and 'prompt' query parameters." });
   }
 
+  console.log("Request received with:", { url, prompt });
+
   try {
-    // Create prediction
+    // Step 1: Send request to Replicate
     const createResponse = await axios.post(
       "https://api.replicate.com/v1/predictions",
       {
@@ -34,11 +37,12 @@ app.get("/edit", async (req, res) => {
       }
     );
 
-    const predictionId = createResponse.data.id;
+    console.log("Prediction created:", createResponse.data);
 
-    // Polling for result
+    const predictionId = createResponse.data.id;
     let predictionResult = createResponse.data;
 
+    // Step 2: Polling until done
     while (
       predictionResult.status !== "succeeded" &&
       predictionResult.status !== "failed"
@@ -51,19 +55,23 @@ app.get("/edit", async (req, res) => {
         }
       );
       predictionResult = statusResponse.data;
+      console.log("Polling result:", predictionResult.status);
     }
 
+    // Step 3: Send final output
     if (predictionResult.status === "succeeded") {
+      console.log("Success! Output:", predictionResult.output[0]);
       return res.json({ edited_image: predictionResult.output[0] });
     } else {
+      console.log("Prediction failed.");
       return res.status(500).json({ error: "Image editing failed." });
     }
   } catch (error) {
-    console.error(error);
+    console.error("Replicate error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Server error. Try again later." });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`ULLASH edit api Server running on port ${PORT}`);
 });
