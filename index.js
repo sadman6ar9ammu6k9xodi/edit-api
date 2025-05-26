@@ -23,7 +23,7 @@ app.get("/edit", async (req, res) => {
     const createResponse = await axios.post(
       "https://api.replicate.com/v1/predictions",
       {
-        version: "c8c21a04a46cfb0c4d4f920b9e3c9c8329a2e39152053bb55ec25e9657d450fc", // InstructPix2Pix
+        version: "4e16e5ec0c2345c0bfa29c7d646ade6e139a18b6ecda10ff70d0e4b1e1404f79", // InstructPix2Pix
         input: {
           image: url,
           prompt: prompt,
